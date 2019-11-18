@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 
 public class Stock implements Serializable {
 
@@ -47,6 +48,6 @@ public class Stock implements Serializable {
 
     @Override
     public String toString() {
-        return getStock() + ", " + getDividend() + ", " + getExDate() + ", " + getPrice() + ", " + getPaymentDate()+ ", "+ getValue();
+        return getStock() + ", " + getDividend() + ", " + getExDate().format(DateTimeFormatter.ofPattern("MMM/dd/yyyy")) + ", " + getPrice() + ", " + getPaymentDate().format(DateTimeFormatter.ofPattern("MMM/dd/yyyy")) + ", " + getValue();
     }
 }

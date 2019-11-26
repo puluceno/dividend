@@ -47,8 +47,10 @@ public class Worker {
     private String[] loadDataFile() {
         LOGGER.log(Level.INFO, "Reading Reits data file");
 
-        Path path = Paths.get("reits.csv");
+        String fileName = "reits.csv";
         String[] reits = new String[150];
+        Path path = Paths.get(fileName);
+
         try {
             reits = Files.readAllLines(path).get(0).split(",");
         } catch (IOException e) {

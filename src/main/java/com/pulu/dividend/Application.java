@@ -6,12 +6,13 @@ import java.io.IOException;
 
 public class Application {
 
-    public static void main(String[] args) throws IOException, InterruptedException {
+    public static void main(String[] args) {
         System.out.println("Started crawling operation.");
         long begin = System.currentTimeMillis();
 
         Worker worker = new Worker();
-        worker.process();
+        worker.processReits();
+        worker.processSP500();
 
         System.out.println("Operation finished in " + (System.currentTimeMillis() - begin) / 1000 + "s");
     }

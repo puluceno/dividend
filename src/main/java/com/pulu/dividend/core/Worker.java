@@ -19,6 +19,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.logging.Level;
@@ -32,37 +33,46 @@ public class Worker {
 
     private final Logger LOGGER = Logger.getLogger("Worker");
 
-    public void process() {
-        List<Stock> stocks = new ArrayList<>();
+    public void processSP500() {
+        List<Stock> sp500 = new ArrayList<>();
 
-        String[] reits = loadDataFile();
+        List<String> stocks = loadDataFile(Constants.SP500_FILENAME);
 
-        for (String paper : reits) {
-            acquireExternalData(stocks, paper);
-        }
+        stocks.parallelStream()
+                .forEach(stock -> acquireExternalData(sp500, stock));
 
-        writeFile(stocks);
+        writeFile(sp500, Constants.DIVIDENDS_SP500_FILENAME);
     }
 
-    private String[] loadDataFile() {
-        LOGGER.log(Level.INFO, "Reading Reits data file");
+    public void processReits() {
+        List<Stock> reitStocks = new ArrayList<>();
 
-        String fileName = "reits.csv";
-        String[] reits = new String[150];
+        List<String> reits = loadDataFile(Constants.REITS_FILENAME);
+
+        reits.parallelStream()
+                .forEach(paper -> acquireExternalData(reitStocks, paper));
+
+        writeFile(reitStocks, Constants.DIVIDENDS_REITS_FILENAME);
+    }
+
+    private List<String> loadDataFile(String fileName) {
+        LOGGER.log(Level.INFO, "Reading " + fileName + " data file");
+
+        List<String> papers = Collections.emptyList();
         Path path = Paths.get(fileName);
 
         try {
-            reits = Files.readAllLines(path).get(0).split(",");
+            papers = List.of(Files.readAllLines(path).get(0).split(","));
         } catch (IOException e) {
             LOGGER.log(Level.SEVERE, "Error while reading data file.", e);
         }
-        return reits;
+        return papers;
     }
 
     private void acquireExternalData(List<Stock> stocks, String paper) {
         String dividendURL = "https://api.nasdaq.com/api/quote/" + paper + "/dividends?assetclass=stocks";
         HttpRequest request = HttpRequest.newBuilder().GET().uri(URI.create(dividendURL)).build();
-        HttpResponse<String> response = null;
+        HttpResponse<String> response;
 
         try {
             response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
@@ -101,10 +111,10 @@ public class Worker {
         }
     }
 
-    private void writeFile(List<Stock> stocks) {
+    private void writeFile(List<Stock> stocks, String fileName) {
         LOGGER.log(Level.INFO, "Writing stocks data to file.");
 
-        Path savePath = Paths.get("dividends_" + LocalDate.now() + ".csv");
+        Path savePath = Paths.get(fileName);
 
         Comparator<Stock> comparator = Comparator.comparing((Stock s) -> s.getExDate().isAfter(LocalDate.now()))
                 .thenComparing((s1, s2) -> s2.getExDate().compareTo(s1.getExDate()))

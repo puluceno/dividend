@@ -79,21 +79,21 @@ public class Worker {
             JSONObject dividendJson = new JSONObject(response.body());
 
             Document document = Jsoup.connect("https://finance.yahoo.com/quote/" + paper).get();
-            String latestPrice = document.select("#quote-header-info > div:eq(2) > div > div > span:eq(0)").text();
+            String latestPrice = document.select("#quote-header-info > div:eq(2) > div > div > span:eq(0)").text().replace(",", "");
 
             LOGGER.log(Level.INFO, "Acquired external data for " + paper);
 
             extractData(stocks, paper, dividendJson, new BigDecimal(latestPrice));
 
-        } catch (IOException | InterruptedException e) {
-            LOGGER.log(Level.SEVERE, "Error while obtaining external data.", e);
+        } catch (IOException | InterruptedException | NumberFormatException e) {
+            LOGGER.log(Level.SEVERE, "Error while obtaining external data for paper " + paper, e);
         }
     }
 
     private void extractData(List<Stock> stocks, String paper, JSONObject dividendJson, BigDecimal latestPrice) {
         try {
             JSONObject nextDividend = dividendJson.getJSONObject("data").getJSONObject("dividends").getJSONArray("rows").getJSONObject(0);
-            BigDecimal dividend = new BigDecimal(nextDividend.getString("amount").replace("$", ""));
+            BigDecimal dividend = new BigDecimal(nextDividend.getString("amount").replace("$", "").replace(",", ""));
 
             LocalDate exDate = LocalDate.now().plus(1, ChronoUnit.YEARS);
             String exOrEffDate = nextDividend.getString("exOrEffDate");
@@ -124,10 +124,7 @@ public class Worker {
         writeHeaderToFile(savePath);
         writeDataToFile(stocks, savePath);
 
-        LOGGER.log(Level.INFO, "Printing the current list of stocks...");
-        for (Stock stock : stocks) {
-            System.out.println(stock);
-        }
+        LOGGER.log(Level.INFO, "Successfully processed " + stocks.size() + " stocks.");
     }
 
     private void writeHeaderToFile(Path savePath) {

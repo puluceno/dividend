@@ -132,7 +132,7 @@ public class Worker {
 
     private void writeHeaderToFile(Path savePath) {
         try {
-            Files.writeString(savePath, "Paper, Dividend, Ex Date, Stock Price, Payment Date, Value, " + LocalDate.now() + System.lineSeparator(), StandardOpenOption.CREATE_NEW, StandardOpenOption.APPEND);
+            Files.writeString(savePath, "Paper, Dividend, Ex Date, Stock Price, Payment Date, Value, " + System.lineSeparator(), StandardOpenOption.CREATE_NEW, StandardOpenOption.APPEND);
         } catch (IOException e) {
             LOGGER.log(Level.SEVERE, "Failed to create file.", e);
         }

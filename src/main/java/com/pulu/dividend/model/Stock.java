@@ -7,23 +7,24 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
 public class Stock implements Serializable {
+    private static final long serialVersionUID = 7868491819504739803L;
 
-    private final String stock;
+    private final String paper;
     private final BigDecimal price;
     private final BigDecimal dividend;
     private final LocalDate exDate;
     private final LocalDate paymentDate;
 
-    public Stock(String stock, BigDecimal price, BigDecimal dividend, LocalDate exDate, LocalDate paymentDate) {
-        this.stock = stock;
+    public Stock(String paper, BigDecimal price, BigDecimal dividend, LocalDate exDate, LocalDate paymentDate) {
+        this.paper = paper;
         this.price = price;
         this.dividend = dividend;
         this.exDate = exDate;
         this.paymentDate = paymentDate;
     }
 
-    public String getStock() {
-        return stock;
+    public String getPaper() {
+        return paper;
     }
 
     public BigDecimal getPrice() {
@@ -48,6 +49,6 @@ public class Stock implements Serializable {
 
     @Override
     public String toString() {
-        return getStock() + ", " + getDividend() + ", " + getExDate().format(DateTimeFormatter.ofPattern("MMM/dd/yyyy")) + ", " + getPrice() + ", " + getPaymentDate().format(DateTimeFormatter.ofPattern("MMM/dd/yyyy")) + ", " + getValue();
+        return getPaper() + ", " + getDividend() + ", " + getExDate().format(DateTimeFormatter.ofPattern("MMM/dd/yyyy")) + ", " + getPrice() + ", " + getPaymentDate().format(DateTimeFormatter.ofPattern("MMM/dd/yyyy")) + ", " + getValue();
     }
 }

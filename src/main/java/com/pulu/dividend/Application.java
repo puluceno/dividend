@@ -1,19 +1,22 @@
 package com.pulu.dividend;
 
-import com.pulu.dividend.core.Worker;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
-import java.io.IOException;
+import com.pulu.dividend.core.Worker;
 
 public class Application {
 
+    private static final Logger LOGGER = Logger.getLogger(Application.class.getSimpleName());
+
     public static void main(String[] args) {
-        System.out.println("Started crawling operation.");
+        LOGGER.log(Level.INFO, "Started crawling operation.");
         long begin = System.currentTimeMillis();
 
         Worker worker = new Worker();
         worker.processReits();
         worker.processSP500();
 
-        System.out.println("Operation finished in " + (System.currentTimeMillis() - begin) / 1000 + "s");
+        LOGGER.log(Level.INFO, "Operation finished in {0}s", (System.currentTimeMillis() - begin) / 1000);
     }
 }

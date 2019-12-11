@@ -1,10 +1,5 @@
 package com.pulu.dividend.core;
 
-import com.pulu.dividend.model.Stock;
-import org.json.JSONObject;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.net.URI;
@@ -25,13 +20,19 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.json.JSONObject;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+
+import com.pulu.dividend.model.Stock;
+
 public class Worker {
 
     private final HttpClient httpClient = HttpClient.newBuilder()
-            .version(HttpClient.Version.HTTP_2)
-            .build();
+        .version(HttpClient.Version.HTTP_2)
+        .build();
 
-    private final Logger LOGGER = Logger.getLogger("Worker");
+    private static final Logger LOGGER = Logger.getLogger("Worker");
 
     public void processSP500() {
         List<Stock> sp500 = new ArrayList<>();
@@ -39,7 +40,7 @@ public class Worker {
         List<String> stocks = loadDataFile(Constants.SP500_FILENAME);
 
         stocks.parallelStream()
-                .forEach(stock -> acquireExternalData(sp500, stock));
+            .forEach(stock -> acquireExternalData(sp500, stock));
 
         writeFile(sp500, Constants.DIVIDENDS_SP500_FILENAME);
     }
@@ -50,13 +51,13 @@ public class Worker {
         List<String> reits = loadDataFile(Constants.REITS_FILENAME);
 
         reits.parallelStream()
-                .forEach(paper -> acquireExternalData(reitStocks, paper));
+            .forEach(paper -> acquireExternalData(reitStocks, paper));
 
         writeFile(reitStocks, Constants.DIVIDENDS_REITS_FILENAME);
     }
 
     private List<String> loadDataFile(String fileName) {
-        LOGGER.log(Level.INFO, "Reading " + fileName + " data file");
+        LOGGER.log(Level.INFO, "Reading {0} data file", fileName);
 
         List<String> papers = Collections.emptyList();
         Path path = Paths.get(fileName);
@@ -81,7 +82,7 @@ public class Worker {
             Document document = Jsoup.connect("https://finance.yahoo.com/quote/" + paper).get();
             String latestPrice = document.select("#quote-header-info > div:eq(2) > div > div > span:eq(0)").text().replace(",", "");
 
-            LOGGER.log(Level.INFO, "Acquired external data for " + paper);
+            LOGGER.log(Level.INFO, "Acquired external data for {0}", paper);
 
             extractData(stocks, paper, dividendJson, new BigDecimal(latestPrice));
 
@@ -97,13 +98,15 @@ public class Worker {
 
             LocalDate exDate = LocalDate.now().plus(1, ChronoUnit.YEARS);
             String exOrEffDate = nextDividend.getString("exOrEffDate");
-            if (!exOrEffDate.equalsIgnoreCase("N/A"))
+            if (!exOrEffDate.equalsIgnoreCase("N/A")) {
                 exDate = LocalDate.parse(exOrEffDate, DateTimeFormatter.ofPattern("MM/dd/yyyy"));
+            }
 
             LocalDate paymentDate = LocalDate.now().plus(1, ChronoUnit.YEARS);
             String paymentDate1 = nextDividend.getString("paymentDate");
-            if (!paymentDate1.equalsIgnoreCase("N/A"))
+            if (!paymentDate1.equalsIgnoreCase("N/A")) {
                 paymentDate = LocalDate.parse(paymentDate1, DateTimeFormatter.ofPattern("MM/dd/yyyy"));
+            }
 
             stocks.add(new Stock(paper, latestPrice, dividend, exDate, paymentDate));
         } catch (Exception e) {
@@ -117,14 +120,14 @@ public class Worker {
         Path savePath = Paths.get(fileName);
 
         Comparator<Stock> comparator = Comparator.comparing((Stock s) -> s.getExDate().isAfter(LocalDate.now()))
-                .thenComparing((s1, s2) -> s2.getExDate().compareTo(s1.getExDate()))
-                .thenComparing(Stock::getValue).reversed();
+            .thenComparing((s1, s2) -> s2.getExDate().compareTo(s1.getExDate()))
+            .thenComparing(Stock::getValue).reversed();
         stocks.sort(comparator);
 
         writeHeaderToFile(savePath);
         writeDataToFile(stocks, savePath);
 
-        LOGGER.log(Level.INFO, "Successfully processed " + stocks.size() + " stocks.");
+        LOGGER.log(Level.INFO, "Successfully processed {0} stocks.", stocks.size());
     }
 
     private void writeHeaderToFile(Path savePath) {
